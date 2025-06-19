@@ -93,6 +93,42 @@ npm install
 npm start
 ```
 
+## 🔧 Troubleshooting
+
+### NPM Dependency Conflicts
+
+If you encounter dependency conflicts during `npm install` (especially with TypeScript versions), try the following:
+
+```bash
+# Option 1: Use legacy peer dependencies flag
+npm install --legacy-peer-deps
+
+# Option 2: Force installation
+npm install --force
+```
+
+Common issues:
+- **TypeScript version conflict**: React-scripts 5.0.1 requires TypeScript 3.x or 4.x, but newer versions may cause conflicts. SwarAI uses TypeScript 4.9.5 which is compatible with all dependencies.
+- **Workbox dependencies**: Make sure all workbox packages use the same version (6.5.4) to avoid conflicts.
+
+### Backend Connection Issues
+
+If the frontend can't connect to the backend:
+
+1. Verify the backend is running (`python -m backend.main`)
+2. Check that the backend is listening on the correct port (default: 8000)
+3. Make sure CORS is properly configured in the backend
+4. Check for any firewall or network issues blocking the connection
+
+### Microphone Access
+
+If the app can't access your microphone:
+
+1. Make sure your browser has permission to access the microphone
+2. Try using Chrome or Edge if other browsers are having issues
+3. Check if your microphone is properly connected and working
+4. Try reloading the page after granting microphone permissions
+
 ## 📱 Usage
 
 1. Open the application in your browser (http://localhost:3000)
