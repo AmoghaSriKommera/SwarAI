@@ -101,37 +101,37 @@ const Recorder: React.FC<RecorderProps> = ({
   // Send audio to backend for transcription
   const sendAudioForTranscription = async (audioBlob: Blob) => {
     try {
-      // For demo purposes, we'll use a mock transcription
-      // In a real implementation, you would send the audio to Whisper API
-      // through your backend service
-      
       // Create FormData for file upload
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.mp3');
       
-      // Simulate API call with timeout
-      setTimeout(() => {
-        // Mock response - In production, this would be the result from Whisper API
-        const mockTranscription = "This is a simulated transcription. In a production environment, this would be the text returned from the Whisper API based on your speech.";
+      // Set up progress indicator
+      const startTime = Date.now();
+      
+      try {
+        // Send to backend transcription endpoint
+        const response = await fetch('http://localhost:8000/transcribe', {
+          method: 'POST',
+          body: formData,
+        });
         
-        // Send transcription to parent component
+        if (!response.ok) {
+          throw new Error(`Transcription failed: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Transcription completed in', Date.now() - startTime, 'ms');
+        console.log('Transcription result:', result);
+        
+        onTranscription(result.text);
+      } catch (fetchError) {
+        console.error('Backend transcription failed:', fetchError);
+        console.log('Falling back to mock transcription for development');
+        
+        // For development only: provide mock transcription if backend fails
+        const mockTranscription = "This is a simulated fallback transcription. In production, this would come from the Whisper API via the backend.";
         onTranscription(mockTranscription);
-      }, 1500);
-      
-      // In a real implementation, you would use fetch or axios:
-      /*
-      const response = await fetch('http://localhost:8000/transcribe', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Transcription failed: ${response.status}`);
       }
-      
-      const result = await response.json();
-      onTranscription(result.text);
-      */
     } catch (error) {
       console.error('Transcription error:', error);
       onTranscription("Sorry, I couldn't transcribe your speech. Please try again.");
