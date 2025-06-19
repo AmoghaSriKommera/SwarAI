@@ -2,44 +2,57 @@
   "name": "swarai-frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "Voice-enabled AI assistant - Progressive Web App",
+  "description": "Voice-enabled AI assistant - Desktop Application",
+  "author": "SwarAI Team",
+  "main": "./electron.js",
+  "homepage": "./",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "build-electron": "npm run build && electron .",
+    "dist": "npm run build && electron-builder",
+    "pack": "electron-builder --dir"
   },
   "dependencies": {
+    "axios": "^1.5.0",
+    "idb": "^7.1.1",
+    "mic-recorder-to-mp3": "^2.2.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "axios": "^1.5.0",
     "react-icons": "^4.10.1",
-    "idb": "^7.1.1",
-    "workbox-core": "^6.5.4",
-    "workbox-expiration": "^6.5.4",
-    "workbox-precaching": "^6.5.4",
-    "workbox-routing": "^6.5.4",
-    "workbox-strategies": "^6.5.4",
     "workbox-background-sync": "^6.5.4",
     "workbox-broadcast-update": "^6.5.4",
     "workbox-cacheable-response": "^6.5.4",
+    "workbox-core": "^6.5.4",
+    "workbox-expiration": "^6.5.4",
     "workbox-google-analytics": "^6.5.4",
     "workbox-navigation-preload": "^6.5.4",
+    "workbox-precaching": "^6.5.4",
     "workbox-range-requests": "^6.5.4",
-    "workbox-streams": "^6.5.4",
-    "mic-recorder-to-mp3": "^2.2.2"
+    "workbox-routing": "^6.5.4",
+    "workbox-strategies": "^6.5.4",
+    "workbox-streams": "^6.5.4"
   },
   "devDependencies": {
-    "@types/react": "^18.2.21",
-    "@types/react-dom": "^18.2.7",
-    "typescript": "^4.9.5",
-    "tailwindcss": "^3.3.3",
-    "postcss": "^8.4.28",
-    "autoprefixer": "^10.4.15",
-    "react-scripts": "5.0.1",
     "@types/node": "^16.18.39",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0"
+    "@typescript-eslint/parser": "^5.62.0",
+    "autoprefixer": "^10.4.15",
+    "concurrently": "^9.1.2",
+    "electron": "^36.5.0",
+    "electron-builder": "^26.0.12",
+    "electron-is-dev": "^3.0.1",
+    "postcss": "^8.4.28",
+    "react-scripts": "5.0.1",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^4.9.5",
+    "wait-on": "^8.0.3"
   },
   "browserslist": {
     "production": [
@@ -58,5 +71,36 @@
       "react-app",
       "react-app/jest"
     ]
+  },
+  "build": {
+    "appId": "com.swarai.app",
+    "productName": "SwarAI",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "build/**/*",
+      "electron.js",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "./electron.js"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

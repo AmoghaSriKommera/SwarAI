@@ -26,7 +26,10 @@ module.exports = {
           light: '#f5f3ff', // Violet 50
           DEFAULT: '#ede9fe', // Violet 100
           dark: '#ddd6fe', // Violet 200
-        }
+        },
+        // Background color classes
+        'user-light': '#e0f2fe',
+        'ai-light': '#f5f3ff'
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

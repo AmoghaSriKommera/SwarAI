@@ -7,7 +7,10 @@ from datetime import datetime
 from sqlalchemy import Column, String, Integer, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 
-from .database import Base
+try:
+    from .database import Base
+except ImportError:
+    from database import Base
 
 
 class QueryLog(Base):

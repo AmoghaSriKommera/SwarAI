@@ -11,11 +11,11 @@ interface RecorderProps {
 // Create recorder instance outside component to persist between renders
 const recorder = new MicRecorder({ bitRate: 128 });
 
-const Recorder: React.FC<RecorderProps> = ({
+function Recorder({
   isRecording,
   onRecordingChange,
   onTranscription
-}) => {
+}: RecorderProps) {
   // State for permission status
   const [hasPermission, setHasPermission] = useState<boolean>(false);
   // State for recording duration
@@ -49,6 +49,46 @@ const Recorder: React.FC<RecorderProps> = ({
 
   // Update timer when recording state changes
   useEffect(() => {
+    // Send audio to backend for transcription
+    const sendAudioForTranscription = async (audioBlob: Blob) => {
+      try {
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.mp3');
+        
+        // Set up progress indicator
+        const startTime = Date.now();
+        
+        try {
+          // Send to backend transcription endpoint
+          const response = await fetch('http://localhost:8000/transcribe', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Transcription failed: ${response.status}`);
+          }
+          
+          const result = await response.json();
+          console.log('Transcription completed in', Date.now() - startTime, 'ms');
+          console.log('Transcription result:', result);
+          
+          onTranscription(result.text);
+        } catch (fetchError) {
+          console.error('Backend transcription failed:', fetchError);
+          console.log('Falling back to mock transcription for development');
+          
+          // For development only: provide mock transcription if backend fails
+          const mockTranscription = "This is a simulated fallback transcription. In production, this would come from the Whisper API via the backend.";
+          onTranscription(mockTranscription);
+        }
+      } catch (error) {
+        console.error('Transcription error:', error);
+        onTranscription("Sorry, I couldn't transcribe your speech. Please try again.");
+      }
+    };
+
     if (isRecording) {
       // Start timer
       setDuration(0);
@@ -89,7 +129,7 @@ const Recorder: React.FC<RecorderProps> = ({
           });
       }
     }
-  }, [isRecording, duration, onRecordingChange]);
+  }, [isRecording, duration, onRecordingChange, onTranscription]);
 
   // Format seconds to MM:SS
   const formatTime = (seconds: number): string => {
@@ -98,45 +138,7 @@ const Recorder: React.FC<RecorderProps> = ({
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Send audio to backend for transcription
-  const sendAudioForTranscription = async (audioBlob: Blob) => {
-    try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.mp3');
-      
-      // Set up progress indicator
-      const startTime = Date.now();
-      
-      try {
-        // Send to backend transcription endpoint
-        const response = await fetch('http://localhost:8000/transcribe', {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Transcription failed: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log('Transcription completed in', Date.now() - startTime, 'ms');
-        console.log('Transcription result:', result);
-        
-        onTranscription(result.text);
-      } catch (fetchError) {
-        console.error('Backend transcription failed:', fetchError);
-        console.log('Falling back to mock transcription for development');
-        
-        // For development only: provide mock transcription if backend fails
-        const mockTranscription = "This is a simulated fallback transcription. In production, this would come from the Whisper API via the backend.";
-        onTranscription(mockTranscription);
-      }
-    } catch (error) {
-      console.error('Transcription error:', error);
-      onTranscription("Sorry, I couldn't transcribe your speech. Please try again.");
-    }
-  };
+
 
   // Toggle recording state
   const toggleRecording = () => {

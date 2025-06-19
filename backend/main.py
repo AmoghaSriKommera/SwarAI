@@ -14,10 +14,17 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import requests
 
-from .database import get_db, init_db
-from .models import QueryLog
-from . import ollama_helper
-from . import gemini_fallback
+try:
+    from .database import get_db, init_db
+    from .models import QueryLog
+    from . import ollama_helper
+    from . import gemini_fallback
+except ImportError:
+    # Fallback for when running from different directory structure
+    from database import get_db, init_db
+    from models import QueryLog
+    import ollama_helper
+    import gemini_fallback
 
 
 # Request and response models
@@ -56,7 +63,12 @@ app.add_middleware(
 # Initialize database on startup
 @app.on_event("startup")
 async def startup_event():
-    init_db()
+    try:
+        init_db()
+        print("✓ Database initialized successfully")
+    except Exception as e:
+        print(f"⚠️ Database initialization failed: {e}")
+        print("   Continuing without database functionality")
     # Create static directory if it doesn't exist
     os.makedirs("static", exist_ok=True)
 
@@ -97,15 +109,18 @@ async def ask(
             detail="Both local and fallback AI services failed to respond"
         )
     
-    # Log query to database
-    log_entry = QueryLog(
-        query=query,
-        response=result["response"],
-        source=result["source"],
-        latency_ms=total_latency_ms
-    )
-    db.add(log_entry)
-    db.commit()
+    # Log query to database (optional)
+    try:
+        log_entry = QueryLog(
+            query=query,
+            response=result["response"],
+            source=result["source"],
+            latency_ms=total_latency_ms
+        )
+        db.add(log_entry)
+        db.commit()
+    except Exception as e:
+        print(f"⚠️ Failed to log query to database: {e}")
     
     # Return response
     return {

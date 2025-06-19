@@ -92,13 +92,12 @@ const App: React.FC = () => {
     
     try {
       // Send query to backend API
-      const startTime = Date.now();
       const response = await axios.post('http://localhost:8000/ask', {
         query: text
       });
       
-      // Calculate latency
-      const latency = Date.now() - startTime;
+      // Calculate latency (unused for now, but available for future use)
+      // const latency = Date.now() - startTime;
       
       // Add AI response to chat
       const aiMessage: ChatMessage = {

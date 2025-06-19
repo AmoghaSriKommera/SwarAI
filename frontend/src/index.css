@@ -29,11 +29,11 @@ code {
 }
 
 .user-bubble {
-  @apply bg-user ml-auto;
+  @apply bg-user-light ml-auto;
 }
 
 .ai-bubble {
-  @apply bg-ai mr-auto;
+  @apply bg-ai-light mr-auto;
 }
 
 .recording-pulse {

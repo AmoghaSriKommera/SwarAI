@@ -15,8 +15,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 }) => {
   // Determine bubble styling based on sender
   const bubbleClass = sender === 'user' 
-    ? 'chat-bubble user-bubble bg-user-light' 
-    : 'chat-bubble ai-bubble bg-ai-light';
+    ? 'chat-bubble user-bubble' 
+    : 'chat-bubble ai-bubble';
   
   return (
     <div className={bubbleClass}>
