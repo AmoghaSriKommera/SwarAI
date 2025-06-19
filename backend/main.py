@@ -3,11 +3,16 @@ Main FastAPI application for SwarAI.
 Provides endpoints for interacting with hybrid AI system.
 """
 import time
+import os
+import base64
+import tempfile
 from typing import Optional, Dict, Any
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+import requests
 
 from .database import get_db, init_db
 from .models import QueryLog
@@ -23,6 +28,11 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     response: str
     source: str  # "ollama" or "gemini"
+    latency_ms: int
+
+
+class TranscriptionResponse(BaseModel):
+    text: str
     latency_ms: int
 
 
@@ -47,6 +57,12 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     init_db()
+    # Create static directory if it doesn't exist
+    os.makedirs("static", exist_ok=True)
+
+
+# Mount static files directory for PWA assets
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # Main query endpoint
@@ -97,6 +113,79 @@ async def ask(
         "source": result["source"],
         "latency_ms": total_latency_ms
     }
+
+
+@app.post("/transcribe", response_model=TranscriptionResponse)
+async def transcribe_audio(
+    audio: UploadFile = File(...),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Transcribe audio using Whisper API.
+    Accepts audio file and returns transcribed text.
+    """
+    start_time = time.time()
+    
+    # Check if WHISPER_API_KEY is set
+    whisper_api_key = os.getenv("WHISPER_API_KEY")
+    if not whisper_api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="WHISPER_API_KEY environment variable not set"
+        )
+    
+    try:
+        # Save uploaded file to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
+            temp_file_path = temp_file.name
+            # Read and write in chunks to handle large files
+            content = await audio.read()
+            temp_file.write(content)
+        
+        # Send file to Whisper API
+        headers = {
+            "Authorization": f"Bearer {whisper_api_key}"
+        }
+        
+        with open(temp_file_path, "rb") as audio_file:
+            files = {
+                "file": audio_file,
+                "model": (None, "whisper-1"),
+                "language": (None, "en")  # Optional, can be omitted for auto-detection
+            }
+            
+            response = requests.post(
+                "https://api.openai.com/v1/audio/transcriptions",
+                headers=headers,
+                files=files
+            )
+        
+        # Clean up temporary file
+        os.unlink(temp_file_path)
+        
+        # Check response
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Whisper API error: {response.text}"
+            )
+        
+        # Parse response
+        transcription = response.json().get("text", "")
+        
+        # Calculate latency
+        latency_ms = int((time.time() - start_time) * 1000)
+        
+        return {
+            "text": transcription,
+            "latency_ms": latency_ms
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Transcription error: {str(e)}"
+        )
 
 
 # Health check endpoint
