@@ -1,134 +1,176 @@
 # SwarAI - Voice-Enabled AI Assistant
 
-SwarAI is a lightweight, accessible, voice-first Progressive Web App (PWA) that allows users to speak naturally, get intelligent responses, and store their voice conversations. It works in modern browsers on mobile, tablet, and desktop — no installation required.
+SwarAI is a lightweight, browser-accessible Progressive Web App (PWA) that allows users to speak naturally, get intelligent responses, and store their voice conversations.
+
+![SwarAI Logo](https://via.placeholder.com/150x150.png?text=SwarAI)
 
 ## Features
 
 - **Voice-First Interface**: Speak naturally and get intelligent responses
-- **Hybrid AI System**: Uses locally hosted LLM via Ollama (LLaMA 3.2) with fallback to external LLM APIs (Gemini)
-- **Progressive Web App**: Works offline and can be installed on devices
-- **Database Storage**: Stores conversations in PostgreSQL
-- **Local-First**: Prioritizes privacy by using local models when available
-- **Cross-Platform**: Works on desktop, tablet, and mobile devices
+- **Hybrid AI System**: Uses locally hosted LLM via Ollama, falls back to cloud LLMs when needed
+- **Progressive Web App**: Works across devices with offline capabilities
+- **No Installation Required**: Runs in modern browsers on desktop, tablet, and mobile
+- **Conversation Storage**: Keeps history of all your interactions locally
+- **Latency Metrics**: Shows response times and which AI model was used
+- **Privacy-Focused**: Local-first approach with cloud fallback only when needed
 
 ## Architecture
 
-SwarAI uses a hybrid architecture:
-- **Frontend**: React + TailwindCSS Progressive Web App
-- **Backend**: FastAPI (Python) with SQLAlchemy
-- **Primary AI**: Local Ollama running LLaMA 3.2
-- **Fallback AI**: Google's Gemini Pro API
-- **Database**: PostgreSQL
-- **Storage**: IndexedDB for local storage in browser
+SwarAI is built with a hybrid architecture:
 
-## Prerequisites
+### Frontend
+- **React**: Modern component-based UI
+- **TailwindCSS**: Utility-first CSS framework for styling
+- **TypeScript**: Type safety throughout the codebase
+- **IndexedDB**: Client-side storage for conversation history
+- **Service Workers**: For offline functionality and PWA capabilities
 
-- Node.js and npm (for frontend)
-- Python 3.8+ (for backend)
+### Backend
+- **FastAPI**: High-performance Python web framework
+- **Ollama**: Local LLM integration (LLaMA 3.2)
+- **Gemini API**: External LLM fallback
+- **Whisper API**: For speech-to-text transcription
+- **PostgreSQL**: Database for logging queries and responses
+- **SQLAlchemy**: ORM for database interactions
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.8+ with pip
+- Node.js 14+ with npm
 - PostgreSQL database
-- [Ollama](https://ollama.ai/) with LLaMA 3.2 model installed
-- Google Gemini API key(s) (for fallback)
+- Ollama (optional, for local LLM support)
+- API keys for Gemini and OpenAI Whisper (for fallback and transcription)
 
-## Setup
+### Installation
 
-### Environment Variables
+1. **Clone the repository**
 
-Create a `.env` file in the project root with the following variables:
-
-```
-# Database Configuration
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/swarai
-
-# Gemini API Keys (comma-separated for multiple keys)
-GEMINI_API_KEYS=your-gemini-api-key-1,your-gemini-api-key-2
-
-# Whisper API Key for speech-to-text
-WHISPER_API_KEY=your-whisper-api-key
-
-# Server Configuration
-PORT=8000
-HOST=0.0.0.0
+```bash
+git clone https://github.com/yourusername/swarai.git
+cd swarai
 ```
 
-### Backend Setup
+2. **Setup environment variables**
 
-1. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+Copy the example env file and update it with your configuration:
 
-2. Install backend dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+cp .env.example .env
+```
 
-3. Make sure Ollama is running with LLaMA 3.2:
-   ```bash
-   ollama run llama3.2
-   ```
+Edit the `.env` file with your database credentials and API keys.
 
-4. Start the backend server:
-   ```bash
-   python main.py
-   ```
+3. **Run the installation script**
 
-### Frontend Setup
+The easiest way to get started is to use the provided launcher:
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
+```bash
+python main.py
+```
 
-2. Install frontend dependencies:
-   ```bash
-   npm install
-   ```
+This script will:
+- Check your system for dependencies
+- Create a Python virtual environment
+- Install Python dependencies
+- Install npm dependencies
+- Start both backend and frontend servers
+- Open the application in your default browser
 
-3. Start the development server:
-   ```bash
-   npm start
-   ```
+### Manual Setup
+
+If you prefer to set up components manually:
+
+#### Backend Setup
+
+```bash
+# Create a virtual environment
+python -m venv venv
+
+# Activate it (Windows)
+venv\Scripts\activate
+# OR (Mac/Linux)
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the backend
+python -m backend.main
+```
+
+#### Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm start
+```
 
 ## Usage
 
-1. Open your browser to `http://localhost:3000`
-2. Allow microphone access when prompted
+1. Open the app in your browser (automatically opened when using the launcher)
+2. Grant microphone permission when prompted
 3. Click the microphone button and start speaking
-4. Your speech will be transcribed and sent to the AI
-5. The AI response will be displayed in the chat
+4. Wait for the AI response
+5. Continue the conversation naturally
 
-## Project Structure
+The app will work in offline mode for previously cached content, and conversations are stored locally in your browser.
+
+## Development
+
+### Project Structure
 
 ```
 swarai/
 ├── backend/
-│   ├── main.py              # FastAPI application
-│   ├── ollama_helper.py     # Ollama LLM integration
-│   ├── gemini_fallback.py   # Gemini API fallback
-│   ├── models.py            # Database models
-│   └── database.py          # Database connection
+│   ├── main.py             # FastAPI server and endpoints
+│   ├── ollama_helper.py    # Local LLM integration
+│   ├── gemini_fallback.py  # External LLM fallback
+│   ├── models.py           # SQLAlchemy models
+│   └── database.py         # Database connection logic
 ├── frontend/
-│   ├── public/              # Static assets
-│   │   ├── index.html
-│   │   └── manifest.json
+│   ├── public/             # Static files
 │   ├── src/
-│   │   ├── App.tsx          # Main application component
-│   │   ├── index.tsx        # React entry point
-│   │   ├── components/
-│   │   │   ├── Recorder.tsx # Voice recording component
-│   │   │   └── ChatBubble.tsx # Message display component
-│   └── tailwind.config.js   # TailwindCSS configuration
-├── README.md
-├── .env                     # Environment variables (gitignored)
+│   │   ├── App.tsx         # Main application component
+│   │   ├── index.tsx       # Entry point
+│   │   ├── components/     # React components
+│   │   │   ├── Recorder.tsx    # Voice recording component
+│   │   │   └── ChatBubble.tsx  # Message display component
+│   └── tailwind.config.js  # TailwindCSS configuration
+├── main.py                 # Launcher script
+├── requirements.txt        # Python dependencies
+└── .env                    # Environment configuration
 ```
 
-## Development
+### API Endpoints
 
-- The backend server runs on port 8000 by default
-- The frontend development server runs on port 3000 by default
-- API communication happens via POST requests to `/ask`
+- **POST /ask**: Send a text query to the AI
+  - Request: `{ "query": "your question here" }`
+  - Response: `{ "response": "AI response", "source": "ollama|gemini", "latency_ms": 123 }`
+
+- **POST /transcribe**: Convert speech to text
+  - Request: `FormData` with audio file
+  - Response: `{ "text": "transcribed text" }`
+
+### Adding New Features
+
+- **New LLM Providers**: Add new service files similar to `gemini_fallback.py`
+- **Enhanced UI Components**: Add to the `frontend/src/components` directory
+- **Additional Storage Options**: Modify `App.tsx` for client-side or `database.py` for server-side
 
 ## License
 
-MIT
+MIT License - See LICENSE file for details.
+
+## Acknowledgments
+
+- LLaMA 3.2 by Meta
+- Ollama for local LLM hosting
+- Gemini by Google
+- Whisper by OpenAI
+
+---
+
+Built with ❤️ for privacy-first, voice-enabled AI assistance.
